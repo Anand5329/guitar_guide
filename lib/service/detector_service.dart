@@ -66,7 +66,8 @@ class Detector {
   // static const String _modelPath = 'assets/models/ssd_mobilenet.tflite';
   // static const String _modelPath = 'assets/models/frets_and_nuts.tflite';
   // static const String _labelPath = 'assets/models/labelmap.txt';
-  static const String _modelPath = 'assets/models/guitar_model.tflite';
+  // static const String _modelPath = 'assets/models/guitar_model.tflite';
+  static const String _modelPath = 'assets/models/best_nms_extended_float32.tflite';
   static const String _labelPath = 'assets/models/guitar_labels.txt';
 
   Detector._(this._isolate, this._interpreter, this._labels);
@@ -279,48 +280,48 @@ class _DetectorServer {
 
     List<List<dynamic>> output = _runInference(imageMatrix);
 
-    final formattedOutput = postProcess(
-      output.first.first,
-      mlModelInputSize.toDouble(),
-      mlModelInputSize.toDouble(),
-      0.25,
-      0.8,
-    );
-
-    final List<Rect> locations = formattedOutput
-        .map(
-        (box) => box["rect"]
-        )
-        .map(
-          (list) => Rect.fromLTRB(
-            list[0],
-            list[1],
-            list[2],
-            list[3],
-          )
-        )
-        .toList();
-    final classes = formattedOutput.map((box) => box["class"]).toList();
-    final scores = formattedOutput.map((box) => box["confidence"]).toList();
-    final numberOfDetections = formattedOutput.length;
+    // final formattedOutput = postProcess(
+    //   output.first.first,
+    //   imageInput.width.toDouble(),
+    //   imageInput.height.toDouble(),
+    //   0.25,
+    //   0.8,
+    // );
+    //
+    // final List<Rect> locations = formattedOutput
+    //     .map(
+    //     (box) => box["rect"]
+    //     )
+    //     .map(
+    //       (list) => Rect.fromLTRB(
+    //         list[0],
+    //         list[1],
+    //         list[2],
+    //         list[3],
+    //       )
+    //     )
+    //     .toList();
+    // final classes = formattedOutput.map((box) => box["class"]).toList();
+    // final scores = formattedOutput.map((box) => box["confidence"]).toList();
+    // final numberOfDetections = formattedOutput.length;
 
     // Location
-    // final locationsRaw = output.first.first as List<List<double>>;
-    // final List<Rect> locations = locationsRaw
-    //     .map((list) => list.map((value) => (value * mlModelInputSize)).toList())
-    //     .map((rect) => Rect.fromLTRB(rect[1], rect[0], rect[3], rect[2]))
-    //     .toList();
+    final locationsRaw = output.first.first as List<List<double>>;
+    final List<Rect> locations = locationsRaw
+        .map((list) => list.map((value) => (value * mlModelInputSize)).toList())
+        .map((rect) => Rect.fromLTRB(rect[1], rect[0], rect[3], rect[2]))
+        .toList();
 
     // Classes
-    // final classesRaw = output.elementAt(1).first as List<double>;
-    // final classes = classesRaw.map((value) => value.toInt()).toList();
+    final classesRaw = output.elementAt(1).first as List<double>;
+    final classes = classesRaw.map((value) => value.toInt()).toList();
 
     // Scores
-    // final scores = output.elementAt(2).first as List<double>;
+    final scores = output.elementAt(2).first as List<double>;
 
     // Number of detections
-    // final numberOfDetectionsRaw = output.last.first as double;
-    // final numberOfDetections = numberOfDetectionsRaw.toInt();
+    final numberOfDetectionsRaw = output.last.first as double;
+    final numberOfDetections = numberOfDetectionsRaw.toInt();
 
     final List<String> classification = [];
     for (var i = 0; i < numberOfDetections; i++) {
@@ -369,11 +370,17 @@ class _DetectorServer {
     // Scores: [1, 10],
     // Number of detections: [1]
     final output = {
-      0: [List<List<num>>.filled(7, List<num>.filled(8400, 0))],
-      1: [List<double>.filled(10, 0)],
-      2: [List<double>.filled(10, 0)],
+      0: [List<List<int>>.filled(600, List<int>.filled(4, 0))],
+      1: [List<int>.filled(3, 0)],
+      2: [List<int>.filled(3, 0)],
       3: [0.0],
     };
+    // final output = {
+    //   0: [List<List<num>>.filled(7, List<num>.filled(8400, 0))],
+    //   1: [List<double>.filled(10, 0)],
+    //   2: [List<double>.filled(10, 0)],
+    //   3: [0.0],
+    // };
 
     _interpreter!.runForMultipleInputs([input], output);
     return output.values.toList();
