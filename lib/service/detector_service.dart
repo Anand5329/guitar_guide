@@ -65,8 +65,9 @@ class _Command {
 class Detector {
   // static const String _modelPath = 'assets/models/ssd_mobilenet.tflite';
   // static const String _modelPath = 'assets/models/frets_and_nuts.tflite';
+  // static const String _labelPath = 'assets/models/labelmap.txt';
   static const String _modelPath = 'assets/models/guitar_model.tflite';
-  static const String _labelPath = 'assets/models/labelmap.txt';
+  static const String _labelPath = 'assets/models/guitar_labels.txt';
 
   Detector._(this._isolate, this._interpreter, this._labels);
 
@@ -276,13 +277,31 @@ class _DetectorServer {
 
     var inferenceTimeStart = DateTime.now().millisecondsSinceEpoch;
 
-    final output = _runInference(imageMatrix);
+    List<List<dynamic>> output = _runInference(imageMatrix);
 
-    final formattedOutput = postProcess(output.first, mlModelInputSize.toDouble(), mlModelInputSize.toDouble(), 0.25, 0.8);
+    final formattedOutput = postProcess(
+      output.first.first,
+      mlModelInputSize.toDouble(),
+      mlModelInputSize.toDouble(),
+      0.25,
+      0.8,
+    );
 
-    final List<Rect> locations = formattedOutput.map((box) => Rect.fromLTRB(box["rect"][0], box["rect"][1], box["rect"][2], box["rect"][3])).toList();
+    final List<Rect> locations = formattedOutput
+        .map(
+        (box) => box["rect"]
+        )
+        .map(
+          (list) => Rect.fromLTRB(
+            list[0],
+            list[1],
+            list[2],
+            list[3],
+          )
+        )
+        .toList();
     final classes = formattedOutput.map((box) => box["class"]).toList();
-    final scores = formattedOutput.map((box) => box["conf"]).toList();
+    final scores = formattedOutput.map((box) => box["confidence"]).toList();
     final numberOfDetections = formattedOutput.length;
 
     // Location
@@ -292,17 +311,12 @@ class _DetectorServer {
     //     .map((rect) => Rect.fromLTRB(rect[1], rect[0], rect[3], rect[2]))
     //     .toList();
 
-
-
     // Classes
     // final classesRaw = output.elementAt(1).first as List<double>;
     // final classes = classesRaw.map((value) => value.toInt()).toList();
 
-
-
     // Scores
     // final scores = output.elementAt(2).first as List<double>;
-
 
     // Number of detections
     // final numberOfDetectionsRaw = output.last.first as double;
@@ -376,14 +390,14 @@ class _DetectorServer {
     List<Map<String, dynamic>> boxes = [];
 
     // Step 1: Process raw outputs
-    for (var detection in rawOutput) {
-      double x = detection[0]; // x-center
-      double y = detection[1]; // y-center
-      double w = detection[2]; // width
-      double h = detection[3]; // height
-      double confidence = detection[4]; // confidence score
-      int classId = detection[5].toInt(); // class id
-      double classConfidence = detection[6]; // confidence of the class
+    for (var i = 0; i < rawOutput.first.length; i++) {
+      double x = rawOutput[0][i]; // x-center
+      double y = rawOutput[1][i]; // y-center
+      double w = rawOutput[2][i]; // width
+      double h = rawOutput[3][i]; // height
+      double confidence = rawOutput[4][i]; // confidence score
+      int classId = rawOutput[5][i].toInt(); // class id
+      double classConfidence = rawOutput[6][i]; // confidence of the class
 
       // Step 2: Apply confidence threshold
       if (confidence * classConfidence < confThreshold) {
