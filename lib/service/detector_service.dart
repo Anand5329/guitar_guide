@@ -317,10 +317,11 @@ class _DetectorServer {
     final classes = classesRaw.map((value) => value.toInt()).toList();
 
     // Scores
-    final scores = output.elementAt(2).first as List<double>;
+    // final scores = output.elementAt(2).first as List<double>;
+    final scores = output.elementAt(2).first.map((score) => score.toDouble() as double).toList();
 
     // Number of detections
-    final numberOfDetectionsRaw = output.last.first as double;
+    final numberOfDetectionsRaw = output.last.first;
     final numberOfDetections = numberOfDetectionsRaw.toInt();
 
     final List<String> classification = [];
@@ -369,11 +370,12 @@ class _DetectorServer {
     // Classes: [1, 10],
     // Scores: [1, 10],
     // Number of detections: [1]
+    num zero = 0;
     final output = {
-      0: [List<List<int>>.filled(600, List<int>.filled(4, 0))],
-      1: [List<int>.filled(3, 0)],
-      2: [List<int>.filled(3, 0)],
-      3: [0.0],
+      0: [List<List<num>>.filled(600, List<num>.filled(4, 0))],
+      1: [List<num>.filled(600, 0)],
+      2: [List<num>.filled(600, 0)],
+      3: [zero],
     };
     // final output = {
     //   0: [List<List<num>>.filled(7, List<num>.filled(8400, 0))],
