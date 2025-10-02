@@ -69,19 +69,21 @@ class _DetectorWidgetState extends State<DetectorWidget>
   void _initializeCamera() async {
     cameras = await availableCameras();
     // cameras[0] for back-camera
-    _cameraController = CameraController(
-      cameras[0],
-      ResolutionPreset.medium,
-      enableAudio: false,
-    )..initialize().then((_) async {
-        await _controller.startImageStream(onLatestImageAvailable);
-        setState(() {});
+    _cameraController =
+        CameraController(
+            cameras[0],
+            ResolutionPreset.medium,
+            enableAudio: false,
+          )
+          ..initialize().then((_) async {
+            await _controller.startImageStream(onLatestImageAvailable);
+            setState(() {});
 
-        /// previewSize is size of each image frame captured by controller
-        ///
-        /// 352x288 on iOS, 240p (320x240) on Android with ResolutionPreset.low
-        ScreenParams.previewSize = _controller.value.previewSize!;
-      });
+            /// previewSize is size of each image frame captured by controller
+            ///
+            /// 352x288 on iOS, 240p (320x240) on Android with ResolutionPreset.low
+            ScreenParams.previewSize = _controller.value.previewSize!;
+          });
   }
 
   @override
@@ -95,17 +97,11 @@ class _DetectorWidgetState extends State<DetectorWidget>
 
     return Stack(
       children: [
-        AspectRatio(
-          aspectRatio: aspect,
-          child: CameraPreview(_controller),
-        ),
+        AspectRatio(aspectRatio: aspect, child: CameraPreview(_controller)),
         // Stats
         _statsWidget(),
         // Bounding boxes
-        AspectRatio(
-          aspectRatio: aspect,
-          child: _boundingBoxes(),
-        ),
+        AspectRatio(aspectRatio: aspect, child: _boundingBoxes()),
       ],
     );
   }
@@ -134,7 +130,8 @@ class _DetectorWidgetState extends State<DetectorWidget>
       return const SizedBox.shrink();
     }
     return Stack(
-        children: results!.map((box) => BoxWidget(result: box)).toList());
+      children: results!.map((box) => BoxWidget(result: box)).toList(),
+    );
   }
 
   /// Callback to receive each frame [CameraImage] perform inference on it
