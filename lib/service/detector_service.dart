@@ -67,7 +67,8 @@ class Detector {
   // static const String _modelPath = 'assets/models/frets_and_nuts.tflite';
   // static const String _labelPath = 'assets/models/labelmap.txt';
   // static const String _modelPath = 'assets/models/guitar_model.tflite';
-  static const String _modelPath = 'assets/models/best_nms_extended_float32.tflite';
+  static const String _modelPath =
+      'assets/models/best_nms_extended_float32.tflite';
   static const String _labelPath = 'assets/models/guitar_labels.txt';
 
   Detector._(this._isolate, this._interpreter, this._labels);
@@ -308,8 +309,9 @@ class _DetectorServer {
     // Location
     final locationsRaw = output.first.first as List<List<double>>;
     final List<Rect> locations = locationsRaw
-        .map((list) => list.map((value) => (value * mlModelInputSize)).toList())
-        .map((rect) => Rect.fromLTRB(rect[1], rect[0], rect[3], rect[2]))
+        // .map((list) => list.map((value) => (value * mlModelInputSize)).toList())
+        .map((list) => list.map((value) => (value)).toList())
+        .map((rect) => Rect.fromLTRB(rect[3], rect[0], rect[1], rect[2]))
         .toList();
 
     // Classes
@@ -318,7 +320,12 @@ class _DetectorServer {
 
     // Scores
     // final scores = output.elementAt(2).first as List<double>;
-    final scores = output.elementAt(2).first.map((score) => score.toDouble() as double).toList();
+    // TODO: fix scores range (should be 0 to 1)
+    final scores = output
+        .elementAt(2)
+        .first
+        .map((score) => score.toDouble() as double)
+        .toList();
 
     // Number of detections
     final numberOfDetectionsRaw = output.last.first;
@@ -337,8 +344,9 @@ class _DetectorServer {
       // Label string
       var label = classification[i];
 
-      if (score > confidence) {
-        recognitions.add(Recognition(i, label, score, locations[i]));
+      if (score > confidence && _areDimsPositive(locations[i])) {
+        double scoreNew = min(1, score);
+        recognitions.add(Recognition(i, label, scoreNew, locations[i]));
       }
     }
 
@@ -386,6 +394,10 @@ class _DetectorServer {
 
     _interpreter!.runForMultipleInputs([input], output);
     return output.values.toList();
+  }
+
+  static bool _areDimsPositive(Rect rect) {
+    return rect.height > 0 && rect.width > 0;
   }
 
   // This function applies the post-processing
