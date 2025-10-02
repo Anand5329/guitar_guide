@@ -6,9 +6,17 @@ class ScreenParams {
   static late Size screenSize;
   static late Size previewSize;
 
-  static double previewRatio = max(previewSize.height, previewSize.width) /
+  static double previewRatio =
+      max(previewSize.height, previewSize.width) /
       min(previewSize.height, previewSize.width);
 
-  static Size screenPreviewSize =
-      Size(screenSize.width, screenSize.width * previewRatio);
+  static Size screenPreviewSize = Size(
+    screenSize.width,
+    screenSize.width * previewRatio,
+  );
+}
+
+class ImageParams {
+  static const int width = 640;
+  static const int height = 640;
 }

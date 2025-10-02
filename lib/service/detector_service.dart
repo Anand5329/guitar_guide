@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:guitar_guide/models/screen_params.dart';
 import 'package:image/image.dart' as image_lib;
 import 'package:guitar_guide/models/recognition.dart';
 import 'package:guitar_guide/utils/image_utils.dart';
@@ -176,7 +177,7 @@ class Detector {
 class _DetectorServer {
   /// Input size of image (height = width = 300)
   // static const int mlModelInputSize = 300;
-  static const int mlModelInputSize = 640;
+  static const int mlModelInputSize = ImageParams.height;
 
   /// Result confidence threshold
   static const double confidence = 0.75;
@@ -284,9 +285,9 @@ class _DetectorServer {
     final formattedOutput = postProcess(
       output.first.first,
       // imageInput.width.toDouble(),
-      300, // TODO: figure out where 300 comes from
+      ImageParams.width.toDouble(),
       // imageInput.height.toDouble(),
-      300,
+      ImageParams.height.toDouble(),
       0.25,
       0.8,
     );
@@ -351,8 +352,6 @@ class _DetectorServer {
         recognitions.add(Recognition(i, label, scoreNew, locations[i]));
       }
     }
-
-    recognitions.add(Recognition(3, "test", 1, Rect.fromLTRB(200, 250, 250, 300)));
 
     var inferenceElapsedTime =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
